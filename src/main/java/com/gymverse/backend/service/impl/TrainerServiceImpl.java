@@ -6,6 +6,7 @@ import com.gymverse.backend.service.TrainerService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class TrainerServiceImpl implements TrainerService {
@@ -18,6 +19,7 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     public Trainer createTrainer(Trainer trainer) {
+    	trainer.setTrainerId(UUID.randomUUID().toString());
         return trainerRepository.save(trainer);
     }
 

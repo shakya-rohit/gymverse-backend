@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class MemberServiceImpl implements MemberService {
@@ -21,21 +22,28 @@ public class MemberServiceImpl implements MemberService {
         this.memberRepository = memberRepository;
         this.planRepository = planRepository;
     }
-
+    
     @Override
     public Member createMember(Member member) {
-    	LocalDate joiningDate = LocalDate.now();
-    	
-		Optional<MembershipPlan> plan = planRepository.findById(member.getMembershipPlanId());
-    	MembershipPlan optedPlan = plan.get();
-    	LocalDate expiryDate = joiningDate.plusMonths(optedPlan.getDurationInMonths());
-    	
-    	member.setJoiningDate(joiningDate);
-    	member.setExpiryDate(expiryDate);
-    	
-    	memberRepository.save(member);
-        return member;
+        member.setMemberId(UUID.randomUUID().toString());
+        LocalDate joiningDate = LocalDate.now();
+
+        // Fetch plan safely
+        Optional<MembershipPlan> planOpt = planRepository.findById(member.getMembershipPlanId());
+        if (planOpt.isEmpty()) {
+            throw new IllegalArgumentException("Invalid Membership Plan ID: " + member.getMembershipPlanId());
+        }
+
+        MembershipPlan plan = planOpt.get();
+        LocalDate expiryDate = joiningDate.plusMonths(plan.getDurationInMonths());
+
+        // Set dates
+        member.setJoiningDate(joiningDate);
+        member.setExpiryDate(expiryDate);
+
+        return memberRepository.save(member);
     }
+
 
     @Override
     public Member getMemberById(String memberId) {
@@ -48,16 +56,46 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public Member updateMember(String memberId, Member updated) {
-        Member existing = getMemberById(memberId);
-        updated.setMemberId(existing.getMemberId()); // preserve original ID
-        return memberRepository.save(updated);
+    public Member updateMember(String id, Member updatedData) {
+        Member existingMember = memberRepository.getById(id);
+        if (existingMember == null) {
+            throw new IllegalArgumentException("Member with id " + id + " not found.");
+        }
+
+        // Update fields
+        existingMember.setName(updatedData.getName());
+        existingMember.setAge(updatedData.getAge());
+        existingMember.setStatus(updatedData.getStatus());
+
+        // If user changes the membership plan, update expiryDate
+        if (!existingMember.getMembershipPlanId().equals(updatedData.getMembershipPlanId())) {
+            existingMember.setMembershipPlanId(updatedData.getMembershipPlanId());
+
+            Optional<MembershipPlan> planOpt = planRepository.findById(updatedData.getMembershipPlanId());
+            if (planOpt.isEmpty()) {
+                throw new IllegalArgumentException("Invalid Membership Plan ID");
+            }
+
+            MembershipPlan plan = planOpt.get();
+            LocalDate newExpiry = existingMember.getJoiningDate().plusMonths(plan.getDurationInMonths());
+            existingMember.setExpiryDate(newExpiry);
+        }
+
+        memberRepository.save(existingMember);
+        return existingMember;
     }
+
 
     @Override
     public void deleteMember(String memberId) {
+        Member existingMember = memberRepository.getById(memberId);
+        if (existingMember == null) {
+            throw new IllegalArgumentException("Member with id " + memberId + " not found.");
+        }
+
         memberRepository.delete(memberId);
     }
+
 
     @Override
     public Member renewMembership(String memberId) {

@@ -20,7 +20,6 @@ public class SubscriptionController {
 
     @PostMapping
     public ResponseEntity<Subscription> create(@RequestBody Subscription subscription) {
-        subscription.setSubscriptionId(UUID.randomUUID().toString());
         return ResponseEntity.ok(service.create(subscription));
     }
 

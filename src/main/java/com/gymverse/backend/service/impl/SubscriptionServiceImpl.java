@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class SubscriptionServiceImpl implements SubscriptionService {
@@ -20,6 +21,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     public Subscription create(Subscription subscription) {
+    	subscription.setSubscriptionId(UUID.randomUUID().toString());
         return repository.save(subscription);
     }
 
