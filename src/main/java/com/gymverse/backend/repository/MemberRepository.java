@@ -20,8 +20,9 @@ public class MemberRepository {
         this.memberTable = enhancedClient.table("members", TableSchema.fromBean(Member.class));
     }
 
-    public void save(Member member) {
+    public Member save(Member member) {
         memberTable.putItem(member);
+        return member;
     }
 
     public Member getById(String memberId) {
@@ -37,4 +38,9 @@ public class MemberRepository {
     public void delete(String memberId) {
         memberTable.deleteItem(r -> r.key(k -> k.partitionValue(memberId)));
     }
+
+	public Member putById(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

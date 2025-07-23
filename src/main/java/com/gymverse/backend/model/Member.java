@@ -1,5 +1,7 @@
 package com.gymverse.backend.model;
 
+import java.time.LocalDate;
+
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
 @DynamoDbBean
@@ -9,8 +11,11 @@ public class Member {
     private int age;
     private String membership;
     private String status;
+    private String membershipPlanId;
+    private LocalDate joiningDate;
+    private LocalDate expiryDate;
 
-    @DynamoDbPartitionKey
+	@DynamoDbPartitionKey
     @DynamoDbAttribute("member_id")
     public String getMemberId() {
         return memberId;
@@ -31,4 +36,28 @@ public class Member {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+	public String getMembershipPlanId() {
+		return membershipPlanId;
+	}
+
+	public void setMembershipPlanId(String membershipPlanId) {
+		this.membershipPlanId = membershipPlanId;
+	}
+
+	public LocalDate getJoiningDate() {
+		return joiningDate;
+	}
+
+	public void setJoiningDate(LocalDate joiningDate) {
+		this.joiningDate = joiningDate;
+	}
+
+	public LocalDate getExpiryDate() {
+		return expiryDate;
+	}
+
+	public void setExpiryDate(LocalDate expiryDate) {
+		this.expiryDate = expiryDate;
+	}
 }
