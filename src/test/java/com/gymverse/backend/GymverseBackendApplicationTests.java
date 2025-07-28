@@ -1,13 +1,13 @@
-package com.gymverse.gymverse_backend;
+package com.gymverse.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(classes = GymverseBackendApplication.class)
 class GymverseBackendApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }
