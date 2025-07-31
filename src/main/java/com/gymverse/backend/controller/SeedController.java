@@ -2,6 +2,7 @@ package com.gymverse.backend.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,8 +19,8 @@ public class SeedController {
     }
 
     @PostMapping
-    public ResponseEntity<String> seed() {
-        dataSeeder.run();
+    public ResponseEntity<String> seed(@RequestHeader("X-Tenant-ID") String tenantId) {
+        dataSeeder.run(tenantId);
         return ResponseEntity.ok("Seeding complete.");
     }
 }

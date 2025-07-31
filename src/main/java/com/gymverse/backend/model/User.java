@@ -8,8 +8,20 @@ public class User {
     private String username;
     private String password;
     private String role;
+    private String emailId;
+    private String name;
+    private String gymName;
+    private String tenantId;
 
-    @DynamoDbPartitionKey
+    public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+
+	@DynamoDbPartitionKey
     @DynamoDbAttribute("username")
     public String getUsername() {
         return username;
@@ -24,7 +36,31 @@ public class User {
         return password;
     }
 
-    public void setPassword(String password) {
+    public String getEmailId() {
+		return emailId;
+	}
+
+	public void setEmailId(String emailId) {
+		this.emailId = emailId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getGymName() {
+		return gymName;
+	}
+
+	public void setGymName(String gymName) {
+		this.gymName = gymName;
+	}
+
+	public void setPassword(String password) {
         this.password = password;
     }
 

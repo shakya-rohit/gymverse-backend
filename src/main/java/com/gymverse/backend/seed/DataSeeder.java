@@ -12,22 +12,23 @@ import com.gymverse.backend.model.MembershipPlan;
 import com.gymverse.backend.model.Subscription;
 import com.gymverse.backend.repository.MemberRepository;
 import com.gymverse.backend.repository.MembershipPlanRepository;
+import com.gymverse.backend.repository.SubscriptionRepository;
 
 @Component
 public class DataSeeder {
 
     private final MemberRepository memberRepository;
     private final MembershipPlanRepository planRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
-    public DataSeeder(MemberRepository memberRepository, MembershipPlanRepository planRepository) {
+    public DataSeeder(MemberRepository memberRepository, MembershipPlanRepository planRepository, SubscriptionRepository subscriptionRepository) {
         this.memberRepository = memberRepository;
         this.planRepository = planRepository;
+        this.subscriptionRepository = subscriptionRepository;
     }
 
-    public void run() {
-        // if (!memberRepository.findAll().isEmpty()) return;
-
-        List<MembershipPlan> plans = planRepository.findAll();
+    public void run(String tenantId) {
+        List<MembershipPlan> plans = planRepository.findAllByTenantId(tenantId);
         Random random = new Random();
         String[] names = { "John", "Jane", "Bob", "Alice", "Mike", "Sara", "Tom", "Emma", "David", "Nina" };
 
@@ -35,12 +36,6 @@ public class DataSeeder {
             MembershipPlan plan = plans.get(random.nextInt(plans.size()));
             LocalDate joinDate = LocalDate.of(2024, random.nextInt(12) + 1, random.nextInt(28) + 1);
             LocalDate expiryDate = joinDate.plusMonths(plan.getDurationInMonths());
-
-            Subscription sub = new Subscription();
-            sub.setPlanId(plan.getPlanId());
-            sub.setPlanId(plan.getPlanId());
-            sub.setStartDate(joinDate);
-            sub.setEndDate(expiryDate);
 
             Member member = new Member();
             member.setMemberId(UUID.randomUUID().toString());
@@ -50,8 +45,18 @@ public class DataSeeder {
             member.setMembershipPlanId(plan.getPlanId());
             member.setJoiningDate(joinDate);
             member.setExpiryDate(expiryDate);
+            member.setTenantId(tenantId);
+            member.setMembership("Gold");
 
             memberRepository.save(member);
+            
+            Subscription sub = new Subscription();
+            sub.setSubscriptionId(UUID.randomUUID().toString());
+            sub.setPlanId(plan.getPlanId());
+            sub.setMemberId(member.getMemberId());
+            sub.setStartDate(joinDate);
+            sub.setEndDate(expiryDate);
+            subscriptionRepository.save(sub);
         }
 
         System.out.println("🌱 Dummy members seeded!");

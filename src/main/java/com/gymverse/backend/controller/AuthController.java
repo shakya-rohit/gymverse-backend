@@ -31,12 +31,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Username already exists");
         }
 
-        User user = new User();
-        user.setUsername(userToRegister.getUsername());
-        user.setPassword(userToRegister.getPassword());
-        user.setRole(userToRegister.getRole() != null ? userToRegister.getRole() : "USER");
-
-        userService.register(user);
+        userService.register(userToRegister);
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
@@ -47,7 +42,7 @@ public class AuthController {
 
         if (userOpt.isPresent()) {
             String token = jwtService.generateToken(userOpt.get());
-            AuthResponse response = new AuthResponse(token, userOpt.get().getRole());
+            AuthResponse response = new AuthResponse(token, userOpt.get().getRole(), userOpt.get().getTenantId());
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");

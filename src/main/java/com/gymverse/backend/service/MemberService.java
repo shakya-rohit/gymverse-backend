@@ -5,10 +5,10 @@ import com.gymverse.backend.model.Member;
 import java.util.List;
 
 public interface MemberService {
-    Member createMember(Member member);
-    Member getMemberById(String memberId);
-    List<Member> getAllMembers();
-    Member updateMember(String memberId, Member updated);
-    void deleteMember(String memberId);
-    Member renewMembership(String memberId);
+    Member createMember(String tenantId, Member member);
+    Member getMemberById(String tenantId, String memberId);
+    List<Member> getAllMembers(String tenantId);
+    Member updateMember(String tenantId, String memberId, Member updated);
+    void deleteMember(String tenantId, String memberId);
+    Member renewMembership(String tenantId, String memberId);
 }

@@ -17,14 +17,15 @@ public class DashboardController {
     }
 
     @GetMapping("/summary")
-    public DashboardSummaryResponse getSummary() {
-        return service.getSummary();
+    public DashboardSummaryResponse getSummary(@RequestHeader("X-Tenant-ID") String tenantId) {
+        return service.getSummary(tenantId);
     }
 
     @GetMapping("/stats")
     public DashboardStatsResponse getStats(
+    		@RequestHeader("X-Tenant-ID") String tenantId,
         @RequestParam String viewType,
         @RequestParam int year) {
-        return service.getStats(viewType, year);
+        return service.getStats(tenantId, viewType, year);
     }
 }

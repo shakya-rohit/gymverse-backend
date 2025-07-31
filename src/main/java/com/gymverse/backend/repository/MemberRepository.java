@@ -7,9 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import com.gymverse.backend.model.Member;
 
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 
 @Repository
 public class MemberRepository {
@@ -25,22 +24,29 @@ public class MemberRepository {
         return member;
     }
 
-    public Member getById(String memberId) {
-        return memberTable.getItem(r -> r.key(k -> k.partitionValue(memberId)));
+    public Member getById(String tenantId, String memberId) {
+        Key key = Key.builder()
+                .partitionValue(tenantId)
+                .sortValue(memberId)
+                .build();
+        return memberTable.getItem(r -> r.key(key));
     }
 
-    public List<Member> findAll() {
+    public List<Member> findAllByTenantId(String tenantId) {
         List<Member> members = new ArrayList<>();
-        memberTable.scan().items().forEach(members::add);
+        QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder()
+                .partitionValue(tenantId)
+                .build());
+
+        memberTable.query(r -> r.queryConditional(queryConditional)).items().forEach(members::add);
         return members;
     }
 
-    public void delete(String memberId) {
-        memberTable.deleteItem(r -> r.key(k -> k.partitionValue(memberId)));
+    public void delete(String tenantId, String memberId) {
+        Key key = Key.builder()
+                .partitionValue(tenantId)
+                .sortValue(memberId)
+                .build();
+        memberTable.deleteItem(r -> r.key(key));
     }
-
-	public Member putById(String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

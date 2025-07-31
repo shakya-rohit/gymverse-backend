@@ -25,18 +25,16 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public DashboardSummaryResponse getSummary() {
-        List<Member> members = memberRepo.findAll();
-        List<MembershipPlan> plans = planRepo.findAll();
+    public DashboardSummaryResponse getSummary(String tenantId) {
+        List<Member> members = memberRepo.findAllByTenantId(tenantId);
+        List<MembershipPlan> plans = planRepo.findAllByTenantId(tenantId);
 
         int totalMembers = members.size();
         int activePlans = plans.size();
 
-        // Create a map of planId to price to avoid repeated lookups
         Map<String, Double> planPriceMap = plans.stream()
             .collect(Collectors.toMap(MembershipPlan::getPlanId, MembershipPlan::getPrice));
 
-        // Sum revenue by mapping each member's planId to price
         double totalRevenue = members.stream()
             .mapToDouble(m -> planPriceMap.getOrDefault(m.getMembershipPlanId(), 0.0))
             .sum();
@@ -45,8 +43,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public DashboardStatsResponse getStats(String viewType, int year) {
-        List<Member> members = memberRepo.findAll();
+    public DashboardStatsResponse getStats(String tenantId, String viewType, int year) {
+        List<Member> members = memberRepo.findAllByTenantId(tenantId);
 
         List<String> labels;
         int buckets;
@@ -66,15 +64,19 @@ public class DashboardServiceImpl implements DashboardService {
             LocalDate joining = m.getJoiningDate();
             LocalDate expiry = m.getExpiryDate();
             if (joining != null && joining.getYear() == year) {
-                int index = viewType.equals("monthly") ? joining.getMonthValue() - 1 : (joining.getMonthValue() - 1) / 3;
+                int index = viewType.equalsIgnoreCase("monthly") ? joining.getMonthValue() - 1 : (joining.getMonthValue() - 1) / 3;
                 newMembers[index]++;
             }
             if (expiry != null && expiry.getYear() == year) {
-                int index = viewType.equals("monthly") ? expiry.getMonthValue() - 1 : (expiry.getMonthValue() - 1) / 3;
+                int index = viewType.equalsIgnoreCase("monthly") ? expiry.getMonthValue() - 1 : (expiry.getMonthValue() - 1) / 3;
                 renewals[index]++;
             }
         }
 
-        return new DashboardStatsResponse(labels, Arrays.stream(newMembers).boxed().toList(), Arrays.stream(renewals).boxed().toList());
+        return new DashboardStatsResponse(
+            labels,
+            Arrays.stream(newMembers).boxed().collect(Collectors.toList()),
+            Arrays.stream(renewals).boxed().collect(Collectors.toList())
+        );
     }
 }

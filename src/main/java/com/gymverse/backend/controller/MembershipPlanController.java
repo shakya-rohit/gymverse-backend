@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/membership-plans")
-@CrossOrigin(origins = "*")
 public class MembershipPlanController {
 
     private final MembershipPlanService service;
@@ -19,32 +18,42 @@ public class MembershipPlanController {
     }
 
     @PostMapping
-    public ResponseEntity<MembershipPlan> create(@RequestBody MembershipPlan plan) {
-        return ResponseEntity.ok(service.create(plan));
+    public ResponseEntity<MembershipPlan> create(
+            @RequestHeader("X-Tenant-ID") String tenantId,
+            @RequestBody MembershipPlan plan) {
+        return ResponseEntity.ok(service.create(tenantId, plan));
     }
 
     @GetMapping
-    public ResponseEntity<List<MembershipPlan>> getAll() {
-        return ResponseEntity.ok(service.getAll());
+    public ResponseEntity<List<MembershipPlan>> getAll(
+            @RequestHeader("X-Tenant-ID") String tenantId) {
+        return ResponseEntity.ok(service.getAll(tenantId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MembershipPlan> getById(@PathVariable String id) {
-        return service.getById(id)
+    public ResponseEntity<MembershipPlan> getById(
+            @RequestHeader("X-Tenant-ID") String tenantId,
+            @PathVariable String id) {
+        return service.getById(tenantId, id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MembershipPlan> update(@PathVariable String id, @RequestBody MembershipPlan plan) {
-        return service.getById(id).map(existing -> {
-            return ResponseEntity.ok(service.update(id, plan));
+    public ResponseEntity<MembershipPlan> update(
+            @RequestHeader("X-Tenant-ID") String tenantId,
+            @PathVariable String id,
+            @RequestBody MembershipPlan plan) {
+        return service.getById(tenantId, id).map(existing -> {
+            return ResponseEntity.ok(service.update(tenantId, id, plan));
         }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(
+            @RequestHeader("X-Tenant-ID") String tenantId,
+            @PathVariable String id) {
+        service.delete(tenantId, id);
         return ResponseEntity.noContent().build();
     }
 }

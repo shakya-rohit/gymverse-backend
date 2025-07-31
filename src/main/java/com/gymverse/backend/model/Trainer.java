@@ -2,16 +2,27 @@ package com.gymverse.backend.model;
 
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 @DynamoDbBean
 public class Trainer {
-    private String trainerId;
+    private String tenantId;    // Partition key
+    private String trainerId;   // Sort key
     private String name;
     private String specialty;
     private String phone;
     private String email;
-
+    
     @DynamoDbPartitionKey
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    @DynamoDbSortKey
     public String getTrainerId() {
         return trainerId;
     }

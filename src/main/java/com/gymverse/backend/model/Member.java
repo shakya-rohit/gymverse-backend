@@ -6,6 +6,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
 @DynamoDbBean
 public class Member {
+    private String tenantId;
     private String memberId;
     private String name;
     private int age;
@@ -14,9 +15,18 @@ public class Member {
     private String membershipPlanId;
     private LocalDate joiningDate;
     private LocalDate expiryDate;
+    
+    @DynamoDbPartitionKey
+    public String getTenantId() {
+        return tenantId;
+    }
 
-	@DynamoDbPartitionKey
-    @DynamoDbAttribute("member_id")
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    
+    @DynamoDbSortKey
     public String getMemberId() {
         return memberId;
     }
@@ -37,27 +47,27 @@ public class Member {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-	public String getMembershipPlanId() {
-		return membershipPlanId;
-	}
+    public String getMembershipPlanId() {
+        return membershipPlanId;
+    }
 
-	public void setMembershipPlanId(String membershipPlanId) {
-		this.membershipPlanId = membershipPlanId;
-	}
+    public void setMembershipPlanId(String membershipPlanId) {
+        this.membershipPlanId = membershipPlanId;
+    }
 
-	public LocalDate getJoiningDate() {
-		return joiningDate;
-	}
+    public LocalDate getJoiningDate() {
+        return joiningDate;
+    }
 
-	public void setJoiningDate(LocalDate joiningDate) {
-		this.joiningDate = joiningDate;
-	}
+    public void setJoiningDate(LocalDate joiningDate) {
+        this.joiningDate = joiningDate;
+    }
 
-	public LocalDate getExpiryDate() {
-		return expiryDate;
-	}
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
 
-	public void setExpiryDate(LocalDate expiryDate) {
-		this.expiryDate = expiryDate;
-	}
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
+    }
 }

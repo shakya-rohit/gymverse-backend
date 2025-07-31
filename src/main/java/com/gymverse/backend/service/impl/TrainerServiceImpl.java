@@ -18,29 +18,31 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public Trainer createTrainer(Trainer trainer) {
-    	trainer.setTrainerId(UUID.randomUUID().toString());
+    public Trainer createTrainer(String tenantId, Trainer trainer) {
+        trainer.setTenantId(tenantId); // set tenant
+        trainer.setTrainerId(UUID.randomUUID().toString()); // set ID
         return trainerRepository.save(trainer);
     }
 
     @Override
-    public Trainer getTrainerById(String id) {
-        return trainerRepository.getById(id);
+    public Trainer getTrainerById(String tenantId, String trainerId) {
+        return trainerRepository.getById(tenantId, trainerId);
     }
 
     @Override
-    public List<Trainer> getAllTrainers() {
-        return trainerRepository.getAll();
+    public List<Trainer> getAllTrainers(String tenantId) {
+        return trainerRepository.getAllTrainers(tenantId);
     }
 
     @Override
-    public Trainer updateTrainer(String id, Trainer trainer) {
-        trainer.setTrainerId(id);
+    public Trainer updateTrainer(String tenantId, String trainerId, Trainer trainer) {
+        trainer.setTenantId(tenantId); // ensure tenant ID is correct
+        trainer.setTrainerId(trainerId);
         return trainerRepository.save(trainer);
     }
 
     @Override
-    public void deleteTrainer(String id) {
-        trainerRepository.delete(id);
+    public void deleteTrainer(String tenantId, String trainerId) {
+        trainerRepository.delete(tenantId, trainerId);
     }
 }

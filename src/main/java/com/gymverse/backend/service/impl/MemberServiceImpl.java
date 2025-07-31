@@ -22,14 +22,15 @@ public class MemberServiceImpl implements MemberService {
         this.memberRepository = memberRepository;
         this.planRepository = planRepository;
     }
-    
+
     @Override
-    public Member createMember(Member member) {
+    public Member createMember(String tenantId, Member member) {
+    	member.setTenantId(tenantId);
         member.setMemberId(UUID.randomUUID().toString());
         LocalDate joiningDate = LocalDate.now();
 
-        // Fetch plan safely
-        Optional<MembershipPlan> planOpt = planRepository.findById(member.getMembershipPlanId());
+        // Validate plan
+        Optional<MembershipPlan> planOpt = planRepository.findById(member.getTenantId(), member.getMembershipPlanId());
         if (planOpt.isEmpty()) {
             throw new IllegalArgumentException("Invalid Membership Plan ID: " + member.getMembershipPlanId());
         }
@@ -37,70 +38,67 @@ public class MemberServiceImpl implements MemberService {
         MembershipPlan plan = planOpt.get();
         LocalDate expiryDate = joiningDate.plusMonths(plan.getDurationInMonths());
 
-        // Set dates
+        // Set metadata
         member.setJoiningDate(joiningDate);
         member.setExpiryDate(expiryDate);
 
         return memberRepository.save(member);
     }
 
-
     @Override
-    public Member getMemberById(String memberId) {
-        return memberRepository.getById(memberId);
+    public Member getMemberById(String tenantId, String memberId) {
+        return memberRepository.getById(tenantId, memberId);
     }
 
     @Override
-    public List<Member> getAllMembers() {
-        return memberRepository.findAll();
+    public List<Member> getAllMembers(String tenantId) {
+        return memberRepository.findAllByTenantId(tenantId);
     }
 
     @Override
-    public Member updateMember(String id, Member updatedData) {
-        Member existingMember = memberRepository.getById(id);
-        if (existingMember == null) {
-            throw new IllegalArgumentException("Member with id " + id + " not found.");
+    public Member updateMember(String tenantId, String memberId, Member updatedData) {
+        Member existing = memberRepository.getById(tenantId, memberId);
+        if (existing == null) {
+            throw new IllegalArgumentException("Member with ID " + memberId + " not found.");
         }
 
-        // Update fields
-        existingMember.setName(updatedData.getName());
-        existingMember.setAge(updatedData.getAge());
-        existingMember.setStatus(updatedData.getStatus());
+        // Update basic fields
+        existing.setName(updatedData.getName());
+        existing.setAge(updatedData.getAge());
+        existing.setStatus(updatedData.getStatus());
 
-        // If user changes the membership plan, update expiryDate
-        if (!existingMember.getMembershipPlanId().equals(updatedData.getMembershipPlanId())) {
-            existingMember.setMembershipPlanId(updatedData.getMembershipPlanId());
+        // Handle plan change
+        if (!existing.getMembershipPlanId().equals(updatedData.getMembershipPlanId())) {
+            existing.setMembershipPlanId(updatedData.getMembershipPlanId());
 
-            Optional<MembershipPlan> planOpt = planRepository.findById(updatedData.getMembershipPlanId());
-            if (planOpt.isEmpty()) {
-                throw new IllegalArgumentException("Invalid Membership Plan ID");
-            }
+            MembershipPlan plan = planRepository.findById(tenantId, updatedData.getMembershipPlanId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Membership Plan ID"));
 
-            MembershipPlan plan = planOpt.get();
-            LocalDate newExpiry = existingMember.getJoiningDate().plusMonths(plan.getDurationInMonths());
-            existingMember.setExpiryDate(newExpiry);
+            LocalDate newExpiry = existing.getJoiningDate().plusMonths(plan.getDurationInMonths());
+            existing.setExpiryDate(newExpiry);
         }
 
-        memberRepository.save(existingMember);
-        return existingMember;
+        return memberRepository.save(existing);
     }
 
-
     @Override
-    public void deleteMember(String memberId) {
-        Member existingMember = memberRepository.getById(memberId);
-        if (existingMember == null) {
-            throw new IllegalArgumentException("Member with id " + memberId + " not found.");
+    public void deleteMember(String tenantId, String memberId) {
+        Member existing = memberRepository.getById(tenantId, memberId);
+        if (existing == null) {
+            throw new IllegalArgumentException("Member with ID " + memberId + " not found.");
         }
 
-        memberRepository.delete(memberId);
+        memberRepository.delete(tenantId, memberId);
     }
 
-
     @Override
-    public Member renewMembership(String memberId) {
-        Member member = getMemberById(memberId);
-        MembershipPlan plan = planRepository.findById(member.getMembershipPlanId())
+    public Member renewMembership(String tenantId, String memberId) {
+        Member member = memberRepository.getById(tenantId, memberId);
+        if (member == null) {
+            throw new IllegalArgumentException("Member not found.");
+        }
+
+        MembershipPlan plan = planRepository.findById(tenantId, member.getMembershipPlanId())
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
         LocalDate newExpiry = (member.getExpiryDate() != null && member.getExpiryDate().isAfter(LocalDate.now()))

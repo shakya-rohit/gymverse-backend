@@ -1,10 +1,13 @@
 package com.gymverse.backend.service.impl;
 
+import com.gymverse.backend.model.Gym;
 import com.gymverse.backend.model.User;
+import com.gymverse.backend.repository.GymRepository;
 import com.gymverse.backend.repository.UserRepository;
 import com.gymverse.backend.service.UserService;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -12,13 +15,24 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final GymRepository gymRepository;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, GymRepository gymRepository) {
         this.userRepository = userRepository;
+        this.gymRepository = gymRepository;
     }
 
     @Override
     public User register(User user) {
+    	Gym gym = new Gym();
+    	gym.setContactEmail(user.getEmailId());
+    	gym.setGymId(UUID.randomUUID().toString());
+    	gym.setGymName(user.getGymName());
+    	gym.setOwnerUsername(user.getUsername());
+    	
+    	gymRepository.save(gym);
+    	
+    	user.setTenantId(gym.getGymId());
         return userRepository.save(user);
     }
 

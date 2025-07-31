@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MembershipPlanService {
-    MembershipPlan create(MembershipPlan plan);
-    List<MembershipPlan> getAll();
-    Optional<MembershipPlan> getById(String id);
-    MembershipPlan update(String id, MembershipPlan plan);
-    void delete(String id);
+    MembershipPlan create(String tenantId, MembershipPlan plan);
+    List<MembershipPlan> getAll(String tenantId);
+    Optional<MembershipPlan> getById(String tenantId, String planId);
+    MembershipPlan update(String tenantId, String planId, MembershipPlan plan);
+    void delete(String tenantId, String planId);
 }
