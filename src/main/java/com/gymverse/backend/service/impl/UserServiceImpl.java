@@ -33,6 +33,7 @@ public class UserServiceImpl implements UserService {
     	gymRepository.save(gym);
     	
     	user.setTenantId(gym.getGymId());
+    	user.setRole("admin");
         return userRepository.save(user);
     }
 

@@ -16,7 +16,7 @@ public class JwtService {
 
     // Ideally you should store this in application.properties or environment variables
     private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256); // secure random key
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 hours
+    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 1; // 24 hours
 
     public String generateToken(User user) {
         return Jwts.builder()

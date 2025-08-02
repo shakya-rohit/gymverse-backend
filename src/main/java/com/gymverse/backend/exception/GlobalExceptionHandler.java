@@ -1,52 +1,67 @@
 package com.gymverse.backend.exception;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.stream.Collectors;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
+import jakarta.servlet.http.HttpServletRequest;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiError> handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        return buildErrorResponse(ex, request, HttpStatus.NOT_FOUND, "Resource Not Found");
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiError> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
+        return buildErrorResponse(ex, request, HttpStatus.BAD_REQUEST, "Bad Request");
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
-        ApiError error = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return buildErrorResponse(ex, request, HttpStatus.BAD_REQUEST, "Illegal Argument");
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiError> handleRuntime(RuntimeException ex, HttpServletRequest request) {
-        ApiError error = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal Server Error",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        return buildErrorResponse(ex, request, HttpStatus.INTERNAL_SERVER_ERROR, "Runtime Error");
     }
 
-    // Optional: Catch-all for any unhandled exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleException(Exception ex, HttpServletRequest request) {
-        ApiError error = new ApiError(
+        return buildErrorResponse(ex, request, HttpStatus.INTERNAL_SERVER_ERROR, "Unhandled Exception");
+    }
+
+    private ResponseEntity<ApiError> buildErrorResponse(Exception ex, HttpServletRequest request,
+                                                        HttpStatus status, String error) {
+        ApiError apiError = new ApiError(
                 LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Unhandled Exception",
+                status.value(),
+                error,
                 ex.getMessage(),
                 request.getRequestURI()
         );
-
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(apiError, status);
     }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidationErrors(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        String message = ex.getBindingResult()
+                           .getFieldErrors()
+                           .stream()
+                           .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                           .collect(Collectors.joining(", "));
+
+        return buildErrorResponse(ex, request, HttpStatus.BAD_REQUEST, "Validation Failed: " + message);
+    }
+
 }

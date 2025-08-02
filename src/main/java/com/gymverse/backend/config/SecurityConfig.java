@@ -10,6 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.gymverse.backend.security.CustomAuthenticationEntryPoint;
 import com.gymverse.backend.security.JwtFilter;
 
 @Configuration
@@ -18,6 +19,9 @@ public class SecurityConfig {
 
     @Autowired
     private JwtFilter jwtFilter;
+    
+    @Autowired
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
 	@Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -27,6 +31,9 @@ public class SecurityConfig {
     	            .requestMatchers("/api/auth/**").permitAll()
     	            .anyRequest().authenticated()
     	        )
+    	        .exceptionHandling(ex -> ex
+    	                .authenticationEntryPoint(customAuthenticationEntryPoint)
+    	            )
     	        .sessionManagement(session -> session
     	            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
     	        )
